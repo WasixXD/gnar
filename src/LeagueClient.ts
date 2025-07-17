@@ -10,7 +10,6 @@ export interface ClientOptions {
   cert: string;
 }
 
-// TODO: MAC?
 export class LeagueClient {
   port: string;
   token: string;
