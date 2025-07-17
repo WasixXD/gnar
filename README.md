@@ -16,5 +16,6 @@ const summoner = await client.get("/lol-summoner/v1/current-summoner");
 
 - Mac support
 - WebSocket connection
+- Tests
 
 _pr's welcome_

@@ -5,16 +5,27 @@ const PORT_REGEX = /--app-port=([0-9])*/g;
 const TOKEN_REGEX = /--remoting-auth-token=[\w]*/g;
 const LEAGUE_CLIENT = "LeagueClientUx.exe";
 
+// Maybe expand the options in the future
+/** The options to pass to the @class LeagueClient class*/
 export interface ClientOptions {
   /** Path to your own cert.pem file */
-  cert: string;
+  cert?: string;
 }
 
+/**
+ * The LeagueClient main class
+ *
+ * @param options The options to configure the LeagueClient class
+ */
 export class LeagueClient {
+  /**The port where the LeagueClientUx is listening */
   port: string;
+  /**The token for what the client authenticates */
   token: string;
+  /**options to configure the class */
   options: ClientOptions;
-  client: Deno.HttpClient;
+
+  #client: Deno.HttpClient;
 
   constructor(options: ClientOptions = { cert: "" }) {
     if (Deno.build.os !== "windows" && Deno.build.os !== "darwin") {
@@ -49,14 +60,14 @@ export class LeagueClient {
     if (this.options.cert !== "") {
       cert = this.#readPem();
     }
-    this.client = Deno.createHttpClient({
+    this.#client = Deno.createHttpClient({
       caCerts: [cert || RIOT_CERT],
     });
   }
 
   #readPem(): string {
     try {
-      const file = Deno.readFile(this.options.cert);
+      const file = Deno.readFile(this.options.cert!);
 
       file.then((content) => {
         return content;
@@ -91,26 +102,83 @@ export class LeagueClient {
         "Content-Type": "application/json",
         "Authorization": `Basic ${encodeBase64(key)}`,
       },
-      client: this.client,
+      client: this.#client,
     });
 
     return response.json();
   }
+
+  /**
+   * Method to make a GET request to the client
+   *
+   * @param url string for the request to be made
+   * @returns JSON containing the response from the client
+   *
+   * @example
+   * ```ts
+   * import { LeagueClient } from "jsr:@wasix/gnar";
+   * const client = new LeagueClient();
+   * const response = await client.get("/lol-summoner/v1/current-summoner");
+   * ```
+   */
   async get(url: string): Promise<JSON> {
     url = this.#parseUrl(url);
     return await this.#generic_fetch(url, "GET");
   }
 
+  /**
+   * Method to make a POST request to the client
+   *
+   * @param url string for the request to be made
+   * @param body object containing the body of the request
+   * @returns JSON containing the response from the client
+   *
+   * @example
+   * ```ts
+   * import { LeagueClient } from "jsr:@wasix/gnar";
+   * const customLobby = {
+   *    "customGameLobby": {
+   *        "configuration": {
+   *            "gameMode": "PRACTICETOOL", "gameMutator": "", "gameServerRegion": "", "mapId": 11, "mutators": {"id": 1}, "spectatorPolicy": "AllAllowed", "teamSize": 5
+   *        },
+   *    "lobbyName": "Name",
+   *    "lobbyPassword": null
+   *    },
+   *    "isCustom": true
+   * }
+   * const client = new LeagueClient();
+   * const response = await client.post("/lol-lobby/v2/lobby", customLobby);
+   * ```
+   */
   async post(url: string, body: object = {}): Promise<JSON> {
     url = this.#parseUrl(url);
     return await this.#generic_fetch(url, "POST", JSON.stringify(body));
   }
-
+  /**
+   * Method to make a PUT request to the client
+   *
+   * @param url string for the request to be made
+   * @param body object containing the body of the request
+   * @returns JSON containing the response from the client
+   */
   async put(url: string, body: object = {}): Promise<JSON> {
     url = this.#parseUrl(url);
     return await this.#generic_fetch(url, "PUT", JSON.stringify(body));
   }
 
+  /**
+   * Method to make a DELETE request to the client
+   *
+   * @param url string for the request to be made
+   * @returns JSON containing the response from the client
+   *
+   * @example
+   * ```ts
+   * import { LeagueClient } from "jsr:@wasix/gnar";
+   * const client = new LeagueClient();
+   * const response = await client.delete("/lol-lobby/v2/lobby");
+   * ```
+   */
   async delete(url: string): Promise<JSON> {
     url = this.#parseUrl(url);
     return await this.#generic_fetch(url, "DELETE");
