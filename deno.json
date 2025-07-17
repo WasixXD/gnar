@@ -1,0 +1,14 @@
+{
+
+  "name": "@wasix/gnar",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": "./mod.ts",
+  "tasks": {
+    "dev": "deno run -A --watch main.ts"
+  },
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1"
+  }
+}
