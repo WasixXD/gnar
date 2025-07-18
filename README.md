@@ -2,8 +2,6 @@
 
 **Easy** to use Deno client api for the LCU (League Client Update)
 
-> Install with
-
 ```bash
 $ deno add jsr:@wasix/gnar
 ```
