@@ -6,6 +6,6 @@ const client = new LeagueClient();
 
 const ws = client.ws();
 
-ws.on("/lol-chat/v1/conversations/active", (data) => {
-  console.log(data);
+ws.on("/lol-chat/v1/conversations/active", ({ eventType, data }) => {
+  console.log(eventType, data);
 });
