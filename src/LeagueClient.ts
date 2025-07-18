@@ -1,9 +1,46 @@
+/// <reference types="npm:@types/ws" />
+import WebSocket from "ws";
+
 import { encodeBase64 } from "jsr:@std/encoding@1.0.10/base64";
 import { RIOT_CERT } from "./riotgames.ts";
+import { EventEmitter } from "node:events";
+import { Buffer } from "node:buffer";
 
 const PORT_REGEX = /--app-port=([0-9])*/g;
 const TOKEN_REGEX = /--remoting-auth-token=[\w]*/g;
 const LEAGUE_CLIENT = "LeagueClientUx.exe";
+
+class LeagueEvents extends EventEmitter {
+  #ws: WebSocket;
+
+  constructor(_ws: WebSocket) {
+    super();
+    this.#ws = _ws;
+
+    this.#ws.on("open", () => {
+      this.#ws.send(
+        JSON.stringify([5, "OnJsonApiEvent"]),
+      );
+    });
+
+    this.#ws.on("message", (message: Buffer) => {
+      // OnJsonApiEvent always sends the first item with the value 8?
+      const payload = JSON.parse(message.toString());
+      if (payload[0] === 8) {
+        const { data, eventType, uri } = payload[2]; // third position has significant things
+        this.emit(uri, { eventType, data });
+      }
+    });
+  }
+
+  override on(
+    eventName: string | symbol,
+    listener: (...args: any[]) => void,
+  ): this {
+    this.addListener(eventName, listener);
+    return this;
+  }
+}
 
 // Maybe expand the options in the future
 /** The options to pass to the @class LeagueClient class*/
@@ -182,5 +219,12 @@ export class LeagueClient {
   async delete(url: string): Promise<JSON> {
     url = this.#parseUrl(url);
     return await this.#generic_fetch(url, "DELETE");
+  }
+
+  ws(): LeagueEvents {
+    const URL = `wss://riot:${this.token}@127.0.0.1:${this.port}`;
+    const ws = new WebSocket(URL, "wamp");
+
+    return new LeagueEvents(ws);
   }
 }
