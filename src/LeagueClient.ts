@@ -1,4 +1,4 @@
-/// <reference types="npm:@types/ws" />
+/// <reference types="npm:@types/ws@8.18.1" />
 import WebSocket from "ws";
 
 import { encodeBase64 } from "jsr:@std/encoding@1.0.10/base64";
