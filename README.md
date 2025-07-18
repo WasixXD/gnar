@@ -18,8 +18,7 @@ const summoner = await client.get("/lol-summoner/v1/current-summoner");
 
 ## WebSockets
 
-> Due to some limitations on the Deno API and the WebSocket class it can't run
-> without the `--unsafely-ignore-certificate-errors` flag
+> ⚠️ Due to limitations in Deno's WebSocket and certificate handling, you must run with the --unsafely-ignore-certificate-errors flag.
 
 ```typescript
 import { LeagueClient } from "jsr:@wasix/gnar";
